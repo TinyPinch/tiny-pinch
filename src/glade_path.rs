@@ -15,7 +15,9 @@ pub fn detect_glade_dir() -> PathBuf {
 
     let mut steamdir = SteamDir::locate().expect("could not locate steam directory");
 
-    let app = steamdir.app(&2198150).expect("could not locate Tiny Glade directory");
+    let app = steamdir
+        .app(&2198150)
+        .expect("could not locate Tiny Glade directory");
 
     app.path.clone()
 }

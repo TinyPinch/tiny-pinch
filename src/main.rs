@@ -1,10 +1,9 @@
 use clap::Parser;
 use tiny_pinch::{launch, Arguments, GLADE_PATH};
 use tracing::info;
-use tracing_subscriber::EnvFilter;
 
 fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt().with_env_filter(EnvFilter::from_default_env()).init();
+    tracing_subscriber::fmt().init();
 
     let args = Arguments::parse();
 
