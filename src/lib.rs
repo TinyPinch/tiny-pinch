@@ -17,8 +17,11 @@ lazy_static! {
 }
 
 #[derive(Parser)]
+/// Tiny Glade mod loader
 pub struct Arguments {
+    /// Path to the mod
     pub mod_path: PathBuf,
+    /// Additional arguments passed to the mod
     #[arg(last(true))]
     pub additional_arguments: Vec<String>,
 }
