@@ -5,7 +5,7 @@ Tiny Glade modloader.
 ## Usage
 
 ```
-Usage: tiny-pinch.exe <MOD_PATH> [-- <ADDITIONAL_ARGUMENTS>...]
+Usage: tiny-pinch <MOD_PATH> [-- <ADDITIONAL_ARGUMENTS>...]
 
 Arguments:
   <MOD_PATH>                 Path to the mod
