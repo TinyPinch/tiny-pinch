@@ -28,6 +28,8 @@ pub struct Arguments {
 
 #[cfg(windows)]
 pub use windows::launch;
+#[cfg(unix)]
+pub use unix::launch;
 
 #[cfg(windows)]
 mod windows {
@@ -79,6 +81,12 @@ mod windows {
         std::io::copy(&mut stream, &mut stdout)?;
         
         Ok(())
+    }    
+}
+
+#[cfg(unix)]
+mod unix {
+    pub fn launch(mod_path: impl AsRef<Path>, additional_arguments: Vec<String>) -> anyhow::Result<()> {
+        unimplemented!("Tiny Pinch currently only supports Windows.");
     }
-    
 }
