@@ -86,6 +86,8 @@ mod windows {
 
 #[cfg(unix)]
 mod unix {
+    use std::path::Path;
+    
     pub fn launch(mod_path: impl AsRef<Path>, additional_arguments: Vec<String>) -> anyhow::Result<()> {
         unimplemented!("Tiny Pinch currently only supports Windows.");
     }
