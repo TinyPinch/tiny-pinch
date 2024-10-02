@@ -1,0 +1,13 @@
+[package]
+name = "simple_mod"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+canopy = { path = "../../canopy"}
+graft = { path = "../../graft"}
+clap = { version = "4.5.18", features = ["derive"] }
+tracing = "0.1.40"

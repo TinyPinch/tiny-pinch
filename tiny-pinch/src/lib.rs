@@ -37,7 +37,7 @@ pub use windows::launch;
 
 #[cfg(windows)]
 mod windows {
-    use std::{iter::once, net::TcpListener, path::Path, process::Command};
+    use std::{env, iter::once, net::TcpListener, path::Path, process::Command, thread};
 
     use dll_syringe::{
         process::{OwnedProcess, Process},
@@ -63,8 +63,16 @@ mod windows {
         tiny_glade_command.env("TINY_PINCH_ARGUMENTS", shell_words::join(arguments));
         tiny_glade_command.env("TINY_PINCH_GLADE_PATH", GLADE_PATH.as_os_str());
         tiny_glade_command.env("TINY_PINCH_DUMP_PATH", DUMP_PATH.as_os_str());
+        tiny_glade_command.env("RUST_LOG", env::var("RUST_LOG").unwrap_or_else(|_| String::from("info")));
 
-        let tiny_glade_process = tiny_glade_command.spawn()?;
+        let mut tiny_glade_process = tiny_glade_command.spawn()?;
+
+        if let Some(mut child_stdout) = tiny_glade_process.stdout.take() {
+            thread::spawn(move || {
+                let mut stderr = std::io::stderr();
+                std::io::copy(&mut child_stdout, &mut stderr)
+            });
+        }
 
         info!("Launched Tiny Glade process: {}", tiny_glade_process.id());
 

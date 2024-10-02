@@ -1,0 +1,23 @@
+[package]
+name = "canopy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "4.5.18"
+ctor = "0.2.8"
+lumberjack = { path = "../lumberjack" }
+retour = "0.3.1"
+bevy_ecs = { git = "https://github.com/TinyPinch/bevy", branch = "mt-executor-hax" }
+bevy_app = { git = "https://github.com/TinyPinch/bevy", branch = "mt-executor-hax" }
+graft = { path = "../graft" }
+canopy-macros = { path = "../canopy-macros" }
+tracing-subscriber = "0.3.18"
+tracing = "0.1.40"
+lazy_static = "1.5.0"
+once_cell = "1.19.0"
+shell-words = "1.1.0"
+thiserror = "1"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58.0", features = ["Win32_System_LibraryLoader"] }
