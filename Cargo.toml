@@ -6,5 +6,7 @@ members = [
     "canopy",
     "canopy-macros",
     "graft",
-    "mods/*", "examples/simple_mod",
+    "mods/*",
+    "examples/simple_mod",
+    "examples/brush_mod",
 ]
