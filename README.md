@@ -2,7 +2,7 @@
 
 Tiny Pinch is a modloader for Tiny Glade, allowing users to inject and run custom mods in the game.
 
-⚠️ Please back up any saves you have before experimenting with anything here ⚠️
+⚠️ Back up any saves you have before experimenting ⚠️
 
 ## Components
 
@@ -17,6 +17,7 @@ Tiny Pinch consists of several components:
 
 - Rust nightly toolchain (for compiling Tiny Pinch)
 - Rust version 1.78.0 (for compiling mods)
+- [Rustup](https://rustup.rs/) (for installing Rust)
 
 ## Installation
 
@@ -106,7 +107,8 @@ Contributions are welcome! Here are some areas where help is needed:
 - Enhancing the Canopy API
 - Addressing compatibility issues with Bevy ecosystem plugins
 
-### Known Issues
+### Known Issues & Disclaimers
 
 - Arbitrary Bevy ecosystem plugins may not function properly due to schedule location methods in Canopy.
 - Potential solution: Implement a `canopy_add_plugins` method to add plugins to a separate app and merge with the main app.
+- This currently only works on Windows
