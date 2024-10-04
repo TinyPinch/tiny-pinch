@@ -1,22 +1,28 @@
-use std::marker::PhantomData;
-
-use bevy_ecs::system::{Res, ResMut, Resource, SystemParam};
+use bevy_ecs::{component::ComponentId, system::{ReadOnlySystemParam, Res, ResMut, Resource, SystemParam}};
 use graft::Grafted;
+use tracing::info;
 
-pub struct GraftedRes<'a, T>(PhantomData<&'a T>);
+pub struct GraftedRes<'w, T: Grafted>(pub Res<'w, T::Local>)
+where
+    T::Local: Resource;
+
+unsafe impl<'a, T: Grafted> ReadOnlySystemParam for GraftedRes<'a, T>
+where
+    T::Local: Resource,
+{}
 
 unsafe impl<'a, T: Grafted> SystemParam for GraftedRes<'a, T>
 where
     T::Local: Resource,
 {
-    type State = <Res<'a, T::Local> as SystemParam>::State;
+    type State = ComponentId;
 
-    type Item<'world, 'state> = <Res<'a, T::Local> as SystemParam>::Item<'world, 'state>;
+    type Item<'world, 'state> = GraftedRes<'world, T>;
 
     fn init_state(world: &mut bevy_ecs::world::World, _: &mut bevy_ecs::system::SystemMeta) -> Self::State {
         let components = world.components();
 
-        components.get_id(T::foreign_type_id()).unwrap_or_else(|| panic!("'{}' does not exist in world", T::foreign_type_name()))
+        components.get_resource_id(T::foreign_type_id()).unwrap_or_else(|| panic!("'{}' does not exist in world", T::foreign_type_name()))
     }
 
     unsafe fn get_param<'world, 'state>(
@@ -25,12 +31,14 @@ where
         world: bevy_ecs::world::unsafe_world_cell::UnsafeWorldCell<'world>,
         change_tick: bevy_ecs::component::Tick,
     ) -> Self::Item<'world, 'state> {
-        <Res<'a, T::Local> as SystemParam>::get_param(state, system_meta, world, change_tick)
+        GraftedRes(<Res<'a, T::Local> as SystemParam>::get_param(state, system_meta, world, change_tick))
     }
 }
 
 
-pub struct GraftedResMut<'a, T>(PhantomData<&'a mut T>);
+pub struct GraftedResMut<'w, T: Grafted>(pub ResMut<'w, T::Local>)
+where
+    T::Local: Resource;
 
 unsafe impl<'a, T: Grafted> SystemParam for GraftedResMut<'a, T>
 where
@@ -38,12 +46,12 @@ where
 {
     type State = <ResMut<'a, T::Local> as SystemParam>::State;
 
-    type Item<'world, 'state> = <ResMut<'a, T::Local> as SystemParam>::Item<'world, 'state>;
+    type Item<'world, 'state> = GraftedResMut<'world, T>;
 
     fn init_state(world: &mut bevy_ecs::world::World, _: &mut bevy_ecs::system::SystemMeta) -> Self::State {
         let components = world.components();
 
-        components.get_id(T::foreign_type_id()).unwrap_or_else(|| panic!("'{}' does not exist in world", T::foreign_type_name()))
+        components.get_resource_id(T::foreign_type_id()).unwrap_or_else(|| panic!("'{}' does not exist in world", T::foreign_type_name()))
     }
 
     unsafe fn get_param<'world, 'state>(
@@ -52,6 +60,6 @@ where
         world: bevy_ecs::world::unsafe_world_cell::UnsafeWorldCell<'world>,
         change_tick: bevy_ecs::component::Tick,
     ) -> Self::Item<'world, 'state> {
-        <ResMut<'a, T::Local> as SystemParam>::get_param(state, system_meta, world, change_tick)
+        GraftedResMut(<ResMut<'a, T::Local> as SystemParam>::get_param(state, system_meta, world, change_tick))
     }
 }
