@@ -2,28 +2,35 @@ pub mod ext;
 pub mod map;
 pub mod query;
 
-use std::{env, mem::transmute, net::TcpStream};
+use std::{env, ffi::c_void, mem::transmute, net::TcpStream, ptr::null};
 
-pub use canopy_macros::*;
 use bevy_app::App;
+pub use canopy_macros::*;
+#[cfg(unix)]
+use libc::{dlopen, RTLD_LAZY, RTLD_LOCAL};
 use lumberjack::Dump;
 use once_cell::unsync::Lazy;
+use procfs::process::{MMPermissions, MMapPath, Process};
 use retour::{Function, GenericDetour};
 use thiserror::Error;
 use tracing::{info, Level};
-use windows::{core::s, Win32::{Foundation::HMODULE, System::LibraryLoader::GetModuleHandleA}};
+#[cfg(windows)]
+use windows::{
+    core::s,
+    Win32::{Foundation::HMODULE, System::LibraryLoader::GetModuleHandleA},
+};
 
 pub mod prelude {
-    pub use canopy_macros::*;
+    pub use crate::{ext::prelude::*, CanopyError, CanopyMod};
     pub use bevy_app;
     pub use bevy_ecs;
-    pub use ctor;
-    pub use lumberjack;
-    pub use lazy_static;
-    pub use retour;
+    pub use canopy_macros::*;
     pub use clap;
+    pub use ctor;
+    pub use lazy_static;
+    pub use lumberjack;
+    pub use retour;
     pub use tracing;
-    pub use crate::{CanopyMod, CanopyError, ext::prelude::*};
 }
 
 lazy_static::lazy_static! {
@@ -33,12 +40,31 @@ lazy_static::lazy_static! {
 
 #[cfg(windows)]
 thread_local! {
-    pub static TINY_GLADE: Lazy<HMODULE> = Lazy::new(|| unsafe {
+    pub static TINY_GLADE: Lazy<*const c_void> = Lazy::new(|| unsafe {
         GetModuleHandleA(s!("tiny-glade.exe")).expect("could not get Tiny Glade module handle")
     });
 }
+#[cfg(unix)]
+thread_local! {
+    pub static TINY_GLADE: Lazy<*const c_void> = Lazy::new(|| {
+    let id = std::process::id();
 
-pub const BUILD_HOOK: &str = "<country_core::systems::main_camera::MainCameraPlugin as bevy_app::plugin::Plugin>::build";
+    let process = Process::new(id as i32).expect("A");
+    for map in process.maps().expect("A") {
+        if let MMapPath::Path(path) = map.pathname {
+
+        if map.perms.contains(MMPermissions::EXECUTE) && path.file_name().unwrap() == "tiny-glade" {
+            return unsafe { transmute(map.address.0) };
+        }
+        }
+    }
+    null()
+    }
+    )
+}
+
+pub const BUILD_HOOK: &str =
+    "<country_core::systems::main_camera::MainCameraPlugin as bevy_app::plugin::Plugin>::build";
 
 #[derive(Debug, Error)]
 pub enum CanopyError {
@@ -60,27 +86,36 @@ pub fn initialize_logging() {
         return;
     };
 
-    tracing_subscriber::fmt().with_max_level(Level::DEBUG).with_writer(std::sync::Mutex::new(stream)).init();
+    tracing_subscriber::fmt()
+        .with_max_level(Level::DEBUG)
+        .with_writer(std::sync::Mutex::new(stream))
+        .init();
 
     info!("Connected to injector process");
 }
 
 pub unsafe fn hook<F: Function>(symbol: &str, hash: Option<&str>, detour: F) -> GenericDetour<F> {
-    let offset = DUMP.offsets().get_offset(symbol, hash).unwrap_or_else(|| panic!("Could not get offset for {symbol}"));
+    let offset = DUMP
+        .offsets()
+        .get_offset(symbol, hash)
+        .unwrap_or_else(|| panic!("Could not get offset for {symbol}"));
 
-    let function_pointer = TINY_GLADE.with(|tiny_glade| transmute(tiny_glade.0.byte_offset(offset)));
+    let function_pointer = TINY_GLADE.with(|tiny_glade| transmute(tiny_glade.byte_offset(offset)));
 
-    GenericDetour::new(
-        F::from_ptr(function_pointer),
-        detour,
-    )
-    .unwrap_or_else(|_| panic!("Could not hook {symbol}"))
+    GenericDetour::new(F::from_ptr(function_pointer), detour)
+        .unwrap_or_else(|_| panic!("Could not hook {symbol}"))
 }
 
-pub unsafe fn hook_enable<F: Function>(symbol: &str, hash: Option<&str>, detour: F) -> GenericDetour<F> {
+pub unsafe fn hook_enable<F: Function>(
+    symbol: &str,
+    hash: Option<&str>,
+    detour: F,
+) -> GenericDetour<F> {
     let hooked = hook(symbol, hash, detour);
 
-    hooked.enable().unwrap_or_else(|_| panic!("Could not enable hook {symbol}"));
+    hooked
+        .enable()
+        .unwrap_or_else(|_| panic!("Could not enable hook {symbol}"));
 
     hooked
 }

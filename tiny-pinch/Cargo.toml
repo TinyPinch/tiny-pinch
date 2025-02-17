@@ -7,6 +7,8 @@ edition = "2021"
 anyhow = "1.0.89"
 clap = { version = "4.5.18", features = ["derive"] }
 lazy_static = "1.5.0"
+pete = "0.12.0"
+procfs = "0.17.0"
 shell-words = "1.1.0"
 steamlocate = "1.2.1"
 tracing = "0.1.40"

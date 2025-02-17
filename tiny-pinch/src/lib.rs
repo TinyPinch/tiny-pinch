@@ -15,9 +15,9 @@ lazy_static! {
     pub static ref GLADE_DIR: PathBuf = get_glade_dir();
     pub static ref GLADE_PATH: PathBuf = GLADE_DIR
         .join(env::var("TINY_PINCH_GLADE_EXE").unwrap_or_else(|_| String::from(EXECUTABLE_NAME)));
-    pub static ref DUMP_PATH: PathBuf = env::var("TINY_PINCH_DUMP_PATH").map(PathBuf::from).unwrap_or_else(|_| {
-        GLADE_DIR.join("dump.bin")
-    });
+    pub static ref DUMP_PATH: PathBuf = env::var("TINY_PINCH_DUMP_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| { GLADE_DIR.join("dump.bin") });
 }
 
 #[derive(Parser)]
@@ -63,7 +63,10 @@ mod windows {
         tiny_glade_command.env("TINY_PINCH_ARGUMENTS", shell_words::join(arguments));
         tiny_glade_command.env("TINY_PINCH_GLADE_PATH", GLADE_PATH.as_os_str());
         tiny_glade_command.env("TINY_PINCH_DUMP_PATH", DUMP_PATH.as_os_str());
-        tiny_glade_command.env("RUST_LOG", env::var("RUST_LOG").unwrap_or_else(|_| String::from("info")));
+        tiny_glade_command.env(
+            "RUST_LOG",
+            env::var("RUST_LOG").unwrap_or_else(|_| String::from("info")),
+        );
 
         let mut tiny_glade_process = tiny_glade_command.spawn()?;
 
@@ -106,12 +109,45 @@ mod windows {
 
 #[cfg(unix)]
 mod unix {
-    use std::path::Path;
+    use std::{iter::once, net::TcpListener, path::Path, process::Command};
+
+    use tracing::info;
+
+    use crate::{DUMP_PATH, GLADE_DIR, GLADE_PATH};
 
     pub fn launch(
         mod_path: impl AsRef<Path>,
         additional_arguments: Vec<String>,
     ) -> anyhow::Result<()> {
-        unimplemented!("Tiny Pinch currently only supports Windows.");
+        let mod_path = mod_path.as_ref();
+
+        let mut tiny_glade_command = Command::new(&*GLADE_PATH);
+
+        tiny_glade_command.current_dir(&*GLADE_DIR);
+
+        let arguments =
+            once(mod_path.to_string_lossy().to_string()).chain(additional_arguments.into_iter());
+
+        tiny_glade_command.env("TINY_PINCH_ARGUMENTS", shell_words::join(arguments));
+        tiny_glade_command.env("TINY_PINCH_GLADE_PATH", GLADE_PATH.as_os_str());
+        tiny_glade_command.env("TINY_PINCH_DUMP_PATH", DUMP_PATH.as_os_str());
+        tiny_glade_command.env("LD_PRELOAD", mod_path.canonicalize()?);
+
+        let listener = TcpListener::bind("127.0.0.1:8996")?;
+
+        let mut tiny_glade_process = tiny_glade_command.spawn()?;
+
+        info!("Launched Tiny Glade process: {}", tiny_glade_process.id());
+        info!("You're going to feel a tiny pinch.");
+
+        let (mut stream, address) = listener.accept()?;
+        info!("Connected to process at: {address}");
+
+        let mut stdout = std::io::stdout();
+        std::io::copy(&mut stream, &mut stdout)?;
+
+        tiny_glade_process.kill()?;
+
+        Ok(())
     }
 }
