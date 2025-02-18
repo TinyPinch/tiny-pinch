@@ -138,9 +138,9 @@ source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1
 dependencies = [
  "bevy_derive",
  "bevy_ecs",
- "bevy_reflect",
+ "bevy_reflect 0.14.0",
  "bevy_tasks",
- "bevy_utils",
+ "bevy_utils 0.14.0",
  "console_error_panic_hook",
  "downcast-rs",
  "thiserror",
@@ -153,7 +153,7 @@ name = "bevy_derive"
 version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 dependencies = [
- "bevy_macro_utils",
+ "bevy_macro_utils 0.14.0",
  "quote",
  "syn 2.0.79",
 ]
@@ -164,10 +164,10 @@ version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 dependencies = [
  "bevy_ecs_macros",
- "bevy_ptr",
- "bevy_reflect",
+ "bevy_ptr 0.14.0",
+ "bevy_reflect 0.14.0",
  "bevy_tasks",
- "bevy_utils",
+ "bevy_utils 0.14.0",
  "bitflags 2.6.0",
  "concurrent-queue",
  "fixedbitset 0.5.7",
@@ -181,7 +181,7 @@ name = "bevy_ecs_macros"
 version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 dependencies = [
- "bevy_macro_utils",
+ "bevy_macro_utils 0.14.0",
  "proc-macro2",
  "quote",
  "syn 2.0.79",
@@ -195,8 +195,8 @@ dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_math",
- "bevy_reflect",
- "bevy_utils",
+ "bevy_reflect 0.14.0",
+ "bevy_utils 0.14.0",
  "smol_str",
  "thiserror",
 ]
@@ -213,11 +213,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_macro_utils"
+version = "0.14.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfc65e570012e64a21f3546df68591aaede8349e6174fb500071677f54f06630"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
+ "toml_edit",
+]
+
+[[package]]
 name = "bevy_math"
 version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 dependencies = [
- "bevy_reflect",
+ "bevy_reflect 0.14.0",
  "glam",
  "rand",
  "smallvec",
@@ -230,13 +242,19 @@ version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 
 [[package]]
+name = "bevy_ptr"
+version = "0.14.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61baa1bdc1f4a7ac2c18217570a7cc04e1cd54d38456e91782f0371c79afe0a8"
+
+[[package]]
 name = "bevy_reflect"
 version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 dependencies = [
- "bevy_ptr",
- "bevy_reflect_derive",
- "bevy_utils",
+ "bevy_ptr 0.14.0",
+ "bevy_reflect_derive 0.14.0",
+ "bevy_utils 0.14.0",
  "downcast-rs",
  "erased-serde",
  "glam",
@@ -247,11 +265,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_reflect"
+version = "0.14.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2508785a4a5809f25a237eec4fee2c91a4dbcf81324b2bbc2d6c52629e603781"
+dependencies = [
+ "bevy_ptr 0.14.2",
+ "bevy_reflect_derive 0.14.2",
+ "bevy_utils 0.14.2",
+ "downcast-rs",
+ "erased-serde",
+ "serde",
+ "smallvec",
+ "thiserror",
+]
+
+[[package]]
 name = "bevy_reflect_derive"
 version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 dependencies = [
- "bevy_macro_utils",
+ "bevy_macro_utils 0.14.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
+ "uuid",
+]
+
+[[package]]
+name = "bevy_reflect_derive"
+version = "0.14.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "967d5da1882ec3bb3675353915d3da909cafac033cbf31e58727824a1ad2a288"
+dependencies = [
+ "bevy_macro_utils 0.14.2",
  "proc-macro2",
  "quote",
  "syn 2.0.79",
@@ -275,7 +322,22 @@ version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
 dependencies = [
  "ahash",
- "bevy_utils_proc_macros",
+ "bevy_utils_proc_macros 0.14.0",
+ "getrandom",
+ "hashbrown",
+ "thread_local",
+ "tracing",
+ "web-time",
+]
+
+[[package]]
+name = "bevy_utils"
+version = "0.14.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffb0ec333b5965771153bd746f92ffd8aeeb9d008a8620ffd9ed474859381a5e"
+dependencies = [
+ "ahash",
+ "bevy_utils_proc_macros 0.14.2",
  "getrandom",
  "hashbrown",
  "thread_local",
@@ -287,6 +349,17 @@ dependencies = [
 name = "bevy_utils_proc_macros"
 version = "0.14.0"
 source = "git+https://github.com/TinyPinch/bevy?branch=mt-executor-hax#53a4dc3d1ca3d2158c1f6b9889fe00dceab7e46d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
+]
+
+[[package]]
+name = "bevy_utils_proc_macros"
+version = "0.14.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38f1ab8f2f6f58439d260081d89a42b02690e5fdd64f814edc9417d33fcf2857"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -963,6 +1036,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bevy_ecs",
+ "bevy_reflect 0.14.2",
  "bincode",
  "clap",
  "ctor",

@@ -1,7 +1,7 @@
-use std::{env, ffi::{c_void, CStr, CString}, fs::File, io::{BufReader, BufWriter}, mem::transmute, net::TcpStream, path::PathBuf, process::exit, thread, time::Duration};
+use std::{any::Any, env, ffi::{c_void, CStr, CString}, fs::File, io::{BufReader, BufWriter}, mem::transmute, net::TcpStream, path::PathBuf, process::exit, sync::atomic::AtomicBool, thread, time::Duration};
 
 use anyhow::anyhow;
-use bevy_ecs::{schedule::Schedule, world::World};
+use bevy_ecs::{component::ComponentId, reflect::AppTypeRegistry, schedule::Schedule, world::World};
 use clap::Parser;
 use elf::{endian::AnyEndian, ElfBytes};
 use lumberjack::{offsets::Offsets, types::Types, Dump};
@@ -12,6 +12,7 @@ use procfs::process::{MMPermissions, MMapPath, Process};
 use retour::{Function, GenericDetour};
 use rustc_demangle::demangle;
 use tracing::{debug, error, info, Level};
+use bevy_reflect::GetTypeRegistration;
 #[cfg(windows)]
 use windows::{core::s, Win32::{Foundation::HMODULE, System::LibraryLoader::GetModuleHandleA}};
 #[cfg(unix)]
@@ -19,6 +20,7 @@ use libc::{dlopen, RTLD_LOCAL, RTLD_LAZY};
 
 static SCHEDULE_RUN_DETOUR: RwLock<Option<GenericDetour<extern "cdecl" fn(*mut Schedule, *mut World)>>> = RwLock::new(None);
 static TYPES: Mutex<Option<Types>> = Mutex::new(None);
+static RAN_TYPE_DUMP: AtomicBool = AtomicBool::new(false);
 
 const SCHEDULE_RUN: &str = "bevy_ecs::schedule::schedule::Schedule::run";
 
@@ -49,6 +51,24 @@ extern "cdecl" fn run_schedule(schedule: *mut Schedule, world: *mut World) {
     for info in world.components().iter() {
         if let Some(type_id) = info.type_id() {
             types.insert(info.name(), type_id);
+        }
+    }
+    
+    if let Some(type_id) = types.get_type_id("bevy_ecs::reflect::AppTypeRegistry") {
+        if RAN_TYPE_DUMP.swap(true, std::sync::atomic::Ordering::Relaxed) {
+            return;
+        }
+
+        let component_id = world.components().get_resource_id(type_id).expect("Could not get app registry");
+
+        let resource = world.get_resource_by_id(component_id).expect("Could not get resource");
+
+        let registry: &AppTypeRegistry = unsafe { resource.deref() };
+
+        let registry = registry.read();
+
+        for type_info in registry.iter() {
+            info!("{}", type_info.type_info().type_path());
         }
     }
 }
